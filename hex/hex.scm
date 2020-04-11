@@ -58,8 +58,8 @@
     ((_ (var start limit) body ...)
      (let ([nlimit limit])
        (do ([var start (1+ var)])
-	   ((>= var nlimit))
-	 body ...)))))
+		   ((>= var nlimit))
+		 body ...)))))
 
 ;; Data tables
 
