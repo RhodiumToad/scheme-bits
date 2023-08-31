@@ -26,7 +26,7 @@
   use-module: ((ice-9 binary-ports)
 			   select: (get-bytevector-n!))
 
-  export: (<hash-algorithm>		compute
+  export: (<hash-algorithm>		compute make-state
 		   <hash-state>			update as-bytes restart
 
 		   result-size
@@ -122,12 +122,15 @@
 						(len <integer>))
   (when (or (negative? offset)
 			(negative? len)
-			(> (+ offset len) (bytevector-length data))
-			(error "bad offset/len"))
-	((directfn self) data offset len)))
+			(> (+ offset len) (bytevector-length data)))
+	(error "bad offset/len"))
+  ((directfn self) data offset len))
 
 (define-method (make-ctx (self <hash-algorithm>))
   (make-bytevector (ctx-size self) 0))
+
+(define-method (make-state (self <hash-algorithm>))
+  (make <hash-state> algorithm: self))
 
 ;;; <hash-state>
 
@@ -139,7 +142,9 @@
 
 (define-method (initialize (self <hash-state>) initargs)
   (let-keywords initargs #t ((algorithm #f))
-    (let* ([impl	(make <hash-algorithm> algorithm: algorithm)]
+    (let* ([impl	(if (is-a? algorithm <hash-algorithm>)
+						algorithm
+						(make <hash-algorithm> algorithm: algorithm))]
 		   [ctx		(make-ctx impl)]
 		   [ctxptr	(bytevector->pointer ctx)]
 		   [updatefn (updatefn impl)]
